@@ -480,7 +480,7 @@ public class Tree23<Key extends Comparable<Key>,Value>{
      * @return the @param node4
      */
     protected Tree23.Node4 makeNode4Consistent(Tree23.Node4 node4){
-        makeNode3Consistent(node4);
+        //makeNode3Consistent(node4);
         if(node4.getKey3().compareTo(node4.getKey())<0) node4.swapKeysAndValues(0,2);
         if(node4.getKey3().compareTo(node4.getKey2())<0) node4.swapKeysAndValues(1,2);
         makeNode4LinksConsistent(node4);
@@ -550,12 +550,14 @@ public class Tree23<Key extends Comparable<Key>,Value>{
     @SuppressWarnings("unchecked")
     protected Tree23.Node2 transformNode4IntoNode2Subtree(Tree23.Node4 node4){
         if(!isNode4(node4)) throw new InvalidParameterException("node given is not type of Tree23.Node4");
-        node4.setLeft(getInstance2((Key)node4.getKey(),(Value) node4.getValue())
+        node4.setLeft(
+                makeNode2Consistent(getInstance2((Key)node4.getKey(),(Value) node4.getValue())
                 .setLeft(node4.getLeft())
-                .setRight(node4.getMidToLeftLink()));
-        node4.setRight(getInstance2((Key)node4.getKey3(),(Value)node4.getValue3())
+                .setRight(node4.getMidToLeftLink())));
+        node4.setRight(
+                makeNode2Consistent(getInstance2((Key)node4.getKey3(),(Value)node4.getValue3())
                 .setLeft(node4.getMid())
-                .setRight(node4.getRight()));
+                .setRight(node4.getRight())));
         node4.swapKeysAndValues(0,1);
         return transformNode4IntoNode2(node4);
 
@@ -613,10 +615,11 @@ public class Tree23<Key extends Comparable<Key>,Value>{
                 node4ref0=makeNode4Consistent(transformIntoNode4(node3ref0).setKey3(k).setValue3(v));
                 //smash the new node4 into a node2 subtree
                 node2ref0=transformNode4IntoNode2Subtree(node4ref0);
-
-
                 //make parent node4 by inserting the node2 subtree
                 node4ref0=(migrateNode2IntoNode3Parent(node2ref0,node3ref1));
+                if(trace){
+                    System.out.println("mid"+node4ref0.getRight());
+                }
                 for (int i = 1; i < cachedPath.size(); i++) {
                     if(trace)System.out.print(cachedPath.get(i));
                     if(cachedPath.get(i)==root){
@@ -643,6 +646,7 @@ public class Tree23<Key extends Comparable<Key>,Value>{
             }
 
         }
+
         return;
 
     }
@@ -669,15 +673,11 @@ public class Tree23<Key extends Comparable<Key>,Value>{
         Tree23.Node4 newParent=transformIntoNode4(parent);
         newParent.setKey3(child.getKey());
         newParent.setValue3(child.getValue());
-
-        //====
-        boolean isChildPositionAvailable;
-        if(isChildPositionAvailable=addChild(newParent,child.getLeft())&&addChild(newParent,child.getRight()))
+        if((addChild(newParent,child.getLeft())&&addChild(newParent,child.getRight()))) {
             return makeNode4Consistent(newParent);
-        else{
-            assert isChildPositionAvailable;
         }
-        return null;
+        throw new InvalidParameterException("imp state");
+
 
     }
 
@@ -796,27 +796,20 @@ public class Tree23<Key extends Comparable<Key>,Value>{
 
 
     public void print(){
-        HashMap<Key,Boolean> isVisited =new HashMap<>();
-        
-        bfs(root,0,isVisited);
+
+        bfs(root,0);
+        //System.out.println(getNode3Ref(root));
     }
-    private void bfs(Node2 root,int i,HashMap<Key,Boolean> isVisited){
+    private void bfs(Node2 root,int i){
         if(root==null)return;
-        bfs(root.getLeft(),i+1,isVisited);
-        if(root.getNodeType()==3)bfs(((Node3)root).getMid(),i+1,isVisited);
-        if(root.getNodeType()==4)bfs(((Node4)root).getMidToLeftLink(),i+1,isVisited);
+        bfs(root.getLeft(),i+1);
+        if(root.getNodeType()==3)bfs(((Node3)root).getMid(),i+1);
+        if(root.getNodeType()==4)bfs(((Node4)root).getMidToLeftLink(),i+1);
         for (int j = 0; j < i; j++) {
             System.out.print("--");
         }
-        if(isVisited.containsKey(root.getKey())&&isVisited.get(root.key)){
-            throw new RuntimeException("loop!");
-
-        }
-        else{
-            isVisited.put(root.getKey(),true);
-        }
         System.out.print("("+i+")"+root+"\n");
-        bfs(root.getRight(),i+1,isVisited);
+        bfs(root.getRight(),i+1);
     }
     public Tree23() {
         this.root = null;

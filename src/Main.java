@@ -6,20 +6,17 @@ public class Main {
 
     public static void main(String[] args) {
         Tree23<Integer,String> h=new Tree23<>();
-        ArrayList<Integer> integers = new ArrayList<>();
+        ArrayList<Integer> e=new ArrayList<>();
         Random r=new Random();
         int j;
-        for (int i = 0; i < 1000; i++) {
-            integers.add(j=r.nextInt());
-            h.insert(j,"hoa!");
+        for (int i = 0; i < 3000; i++) {
+            e.add(j=r.nextInt());
+            h.insert(j,String.valueOf(r.nextInt()));
         }
-        try{
-            for (Integer m:integers) {
-                System.out.println(h.search(m));
-                System.out.println(m);
-            }
-        }catch (Exception e){e.printStackTrace();}
-        h.print();//loop! //TODO fix
+        for (Integer key:e) {
+            System.out.println(h.search(key));
+        }
+        h.print();
 
     }
 }
