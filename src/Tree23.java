@@ -300,7 +300,7 @@ public class Tree23<Key extends Comparable<Key>,Value>{
      */
     protected static boolean addChild(Tree23.Node2 parent,Tree23.Node2 child){
         if(parent.getLeft()==null){parent.setLeft(child);return true;}
-        if(parent.getLeft()==null){parent.setRight(child);return true;}
+        if(parent.getRight()==null){parent.setRight(child);return true;}
         if(isNode3(parent))return _addChild3(getNode3Ref(parent),child);
         if(isNode4(parent))return _addChild4(getNode4Ref(parent),child);
         return false;
@@ -723,7 +723,10 @@ public class Tree23<Key extends Comparable<Key>,Value>{
                 .setKey2(node2ref1.getKey())
                 .setValue2(node2ref1.getValue())
                 .setMid(node2ref1.getLeft())));
-        return addChild(node3ref0,node2ref1.getRight())?node3ref0:null;
+
+        return addChild(node3ref0,node2ref1.getRight())?
+                makeNode3Consistent(node3ref0):
+                null;
     }
     public void delete(Key k) {
         throw new InvalidParameterException();
