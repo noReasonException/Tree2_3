@@ -671,9 +671,13 @@ public class Tree23<Key extends Comparable<Key>,Value>{
         newParent.setValue3(child.getValue());
 
         //====
-        if(addChild(newParent,child.getLeft())&&addChild(newParent,child.getRight()))return makeNode4Consistent(newParent);
-        throw new InvalidParameterException("imposssible state , after deletion of 1 child and converting any node of" +
-                "Node3 to Node4 must have at least 2 empty links!");
+        boolean isChildPositionAvailable;
+        if(isChildPositionAvailable=addChild(newParent,child.getLeft())&&addChild(newParent,child.getRight()))
+            return makeNode4Consistent(newParent);
+        else{
+            assert isChildPositionAvailable;
+        }
+        return null;
 
     }
 
@@ -742,7 +746,7 @@ public class Tree23<Key extends Comparable<Key>,Value>{
 
     @SuppressWarnings("unchecked")
     protected Node2 _search(Node2 curr,Key k){
-        if(curr==null)throw new InvalidParameterException("Not exists!");
+        if(curr==null)throw new InvalidParameterException("Not exists!"+k);
         Tree23.Node3 node3ref;
         cachedParent=curr;
         this.cachedPath.add(0,curr);
@@ -790,23 +794,29 @@ public class Tree23<Key extends Comparable<Key>,Value>{
     }
 
 
-    public void test(){
-        System.out.println(getNode2Ref(root).getLeft().getKey());
-        System.out.println(getNode2Ref(root).getRight().getKey());
-    }
+
     public void print(){
-        bfs(root,0);
+        HashMap<Key,Boolean> isVisited =new HashMap<>();
+        
+        bfs(root,0,isVisited);
     }
-    private void bfs(Node2 root,int i){
+    private void bfs(Node2 root,int i,HashMap<Key,Boolean> isVisited){
         if(root==null)return;
-        bfs(root.getLeft(),i+1);
-        if(root.getNodeType()==3)bfs(((Node3)root).getMid(),i+1);
-        if(root.getNodeType()==4)bfs(((Node4)root).getMidToLeftLink(),i+1);
+        bfs(root.getLeft(),i+1,isVisited);
+        if(root.getNodeType()==3)bfs(((Node3)root).getMid(),i+1,isVisited);
+        if(root.getNodeType()==4)bfs(((Node4)root).getMidToLeftLink(),i+1,isVisited);
         for (int j = 0; j < i; j++) {
             System.out.print("--");
         }
+        if(isVisited.containsKey(root.getKey())&&isVisited.get(root.key)){
+            throw new RuntimeException("loop!");
+
+        }
+        else{
+            isVisited.put(root.getKey(),true);
+        }
         System.out.print("("+i+")"+root+"\n");
-        bfs(root.getRight(),i+1);
+        bfs(root.getRight(),i+1,isVisited);
     }
     public Tree23() {
         this.root = null;
