@@ -617,20 +617,18 @@ public class Tree23<Key extends Comparable<Key>,Value>{
                 node2ref0=transformNode4IntoNode2Subtree(node4ref0);
                 //make parent node4 by inserting the node2 subtree
                 node4ref0=(migrateNode2IntoNode3Parent(node2ref0,node3ref1));
-                if(trace){
-                    System.out.println("mid"+node4ref0.getRight());
-                }
                 for (int i = 1; i < cachedPath.size(); i++) {
-                    if(trace)System.out.print(cachedPath.get(i));
                     if(cachedPath.get(i)==root){
                         if(trace)System.out.println("split on root");
                         root=transformNode4IntoNode2Subtree(getNode4Ref(root));
                         break;
 
                     }
-                    else if(isNode2(cachedPath.get(i+1))){
+                    if(isNode2(cachedPath.get(i+1))){
                         if(trace)System.out.println("migrate on node2");
-                        migrateNode4IntoNode2Parent(getNode4Ref(cachedPath.get(i)),cachedPath.get(i+1));
+                        if(migrateNode4IntoNode2Parent(getNode4Ref(cachedPath.get(i)),cachedPath.get(i+1))==null){
+                            System.out.println("null");//critical bug , remains unbalanced
+                        }
                         break;
                     }
                     else if(deleteChild(cachedPath.get(i+1),cachedPath.get(i))){
@@ -806,7 +804,7 @@ public class Tree23<Key extends Comparable<Key>,Value>{
         if(root.getNodeType()==3)bfs(((Node3)root).getMid(),i+1);
         if(root.getNodeType()==4)bfs(((Node4)root).getMidToLeftLink(),i+1);
         for (int j = 0; j < i; j++) {
-            System.out.print("--");
+            System.out.print("-<");
         }
         System.out.print("("+i+")"+root+"\n");
         bfs(root.getRight(),i+1);
