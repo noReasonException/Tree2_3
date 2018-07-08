@@ -626,6 +626,7 @@ public class Tree23<Key extends Comparable<Key>,Value>{
                     }
                     if(isNode2(cachedPath.get(i+1))){
                         if(trace)System.out.println("migrate on node2");
+                        deleteChild(cachedPath.get(i+1),cachedPath.get(i));
                         if(migrateNode4IntoNode2Parent(getNode4Ref(cachedPath.get(i)),cachedPath.get(i+1))==null){
                             System.out.println("null");//critical bug , remains unbalanced
                         }
