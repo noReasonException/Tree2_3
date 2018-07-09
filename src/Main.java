@@ -6,10 +6,12 @@ public class Main {
 
     public static void main(String[] args) {
         Tree23<Integer,String> h=new Tree23<>();
-        for (int i = 1; i <=10; i++) {
+        for (int i = 1; i <=100000; i++) {
             h.insert(i,"je");
         }
-        h.insert(11,"hoa");
+        for (int i = 1; i < 100000; i++) {
+            System.out.println(h.search(i));
+        }
 
         h.print();
 

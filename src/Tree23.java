@@ -8,13 +8,17 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 /***
  * Balanced 2-3 tree (worst time log(n))
  * @param <Key>
  * @param <Value>
  */
-public class Tree23<Key extends Comparable<Key>,Value>{
+public class Tree23<Key extends Comparable<Key>,Value> implements Map<Key,Value>{
+    int size=0;
     protected Node2 root;
     protected Node2 cachedParent;
     protected ArrayList<Node2> cachedPath;
@@ -810,6 +814,136 @@ public class Tree23<Key extends Comparable<Key>,Value>{
         System.out.print("("+i+")"+root+"\n");
         bfs(root.getRight(),i+1);
     }
+
+    @Override
+    public int size() {
+        return size;
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return root==null;
+    }
+
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public boolean containsKey(Object key) {
+        try {
+            search((Key) key);
+            return true;
+        }catch (InvalidParameterException e){
+            return false;
+        }
+    }
+
+    @Override
+    public boolean containsValue(Object value) {
+        return false;
+    }
+
+    @SuppressWarnings("unckecked")
+    @Override
+    public Value get(Object key) {
+        return search((Key)key);
+    }
+
+    @Override
+    public Value put(Key key, Value value) {
+
+        try {
+            insert((Key)key,(Value)value);
+            return value;
+        }catch (InvalidParameterException e){
+            return null;
+        }
+    }
+
+    @Override
+    public Value remove(Object key) {
+        return null;
+    }
+
+    @Override
+    public void putAll(Map<? extends Key, ? extends Value> m) {
+
+    }
+
+    @Override
+    public void clear() {
+
+    }
+
+    @Override
+    public Set<Key> keySet() {
+        return null;
+    }
+
+    @Override
+    public Collection<Value> values() {
+        return null;
+    }
+
+    @Override
+    public Set<Entry<Key, Value>> entrySet() {
+        return null;
+    }
+
+    @Override
+    public Value getOrDefault(Object key, Value defaultValue) {
+        return null;
+    }
+
+    @Override
+    public void forEach(BiConsumer<? super Key, ? super Value> action) {
+
+    }
+
+    @Override
+    public void replaceAll(BiFunction<? super Key, ? super Value, ? extends Value> function) {
+
+    }
+
+    @Override
+    public Value putIfAbsent(Key key, Value value) {
+        return null;
+    }
+
+    @Override
+    public boolean remove(Object key, Object value) {
+        return false;
+    }
+
+    @Override
+    public boolean replace(Key key, Value oldValue, Value newValue) {
+        return false;
+    }
+
+    @Override
+    public Value replace(Key key, Value value) {
+        return null;
+    }
+
+    @Override
+    public Value computeIfAbsent(Key key, Function<? super Key, ? extends Value> mappingFunction) {
+        return null;
+    }
+
+    @Override
+    public Value computeIfPresent(Key key, BiFunction<? super Key, ? super Value, ? extends Value> remappingFunction) {
+        return null;
+    }
+
+    @Override
+    public Value compute(Key key, BiFunction<? super Key, ? super Value, ? extends Value> remappingFunction) {
+        return null;
+    }
+
+    @Override
+    public Value merge(Key key, Value value, BiFunction<? super Value, ? super Value, ? extends Value> remappingFunction) {
+        return null;
+    }
+
     public Tree23() {
         this.root = null;
         this.cachedParent=null;
