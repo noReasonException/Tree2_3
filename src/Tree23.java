@@ -2,8 +2,12 @@ import java.lang.reflect.Array;
 import java.security.InvalidParameterException;
 import java.util.*;
 
+import jdk.jshell.spi.ExecutionControl;
+import jdk.jshell.spi.ExecutionControl.NotImplementedException;
 import jdk.nashorn.api.tree.Tree;
 import org.w3c.dom.Node;
+
+import javax.naming.OperationNotSupportedException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.security.InvalidParameterException;
@@ -863,15 +867,18 @@ public class Tree23<Key extends Comparable<Key>,Value> implements Map<Key,Value>
     public Value remove(Object key) {
         return null;
     }
-
+    @SuppressWarnings("unckecked")
     @Override
     public void putAll(Map<? extends Key, ? extends Value> m) {
-
+        m.forEach((k,v)->{
+            this.put(k,v);
+        });
     }
 
     @Override
     public void clear() {
-
+        root=null;
+        size=0;
     }
 
     @Override
