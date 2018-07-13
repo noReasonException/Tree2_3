@@ -1,16 +1,8 @@
-import java.lang.reflect.Array;
 import java.security.InvalidParameterException;
 import java.util.*;
 
-import jdk.jshell.spi.ExecutionControl;
-import jdk.jshell.spi.ExecutionControl.NotImplementedException;
-import jdk.nashorn.api.tree.Tree;
-import org.w3c.dom.Node;
-
-import javax.naming.OperationNotSupportedException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -872,10 +864,12 @@ public class Tree23<Key extends Comparable<Key>,Value> implements Map<Key,Value>
     protected Tree23.Node2 transformNode3IntoNode2ByKeyDeletion(Tree23.Node3 node , Key k){
         if(node.getKey().compareTo((Comparable)k)==0){
             node.setKey(null);
+            node.setValue(null);
             node.swapKeysAndValues();
         }
         else if(node.getKey2().compareTo(k)==0){
             node.setKey2(null);
+            node.setValue2(null);
         }
         return makeNode2Consistent(transformIntoNode2(node));
 
@@ -895,7 +889,15 @@ public class Tree23<Key extends Comparable<Key>,Value> implements Map<Key,Value>
         return getMin(prev.getLeft());
 
     }
-
+    private Tree23.Node2 getMax(Tree23.Node2 prev){
+        if(prev.getRight()==null)return prev;
+        return getMax(prev.getRight());
+    }
+    private Tree23.Node2 getNextOrPrevOfNode(Tree23.Node2 curr){
+        if(curr.getRight()!=null)return getMin(curr.getRight());
+        else if(curr.getLeft()!=null)return getMin(curr.getLeft());
+        throw new InvalidParameterException("Impossible state , only mid link in node with key="+curr.getKey());
+    }
     @SuppressWarnings("unckeched")
     @Override
     public Value remove(Object key) {
@@ -903,11 +905,19 @@ public class Tree23<Key extends Comparable<Key>,Value> implements Map<Key,Value>
         Value retval=search((Key)key);
 
         Node2 node = getPathElement(0);
-
+        Node2 tmp=null;
+        Key replacementKey=null;
+        Value replacementValue=null;
         if(isChildlessNode(node)){
             if(isNode3(node)) transformNode3IntoNode2ByKeyDeletion(getNode3Ref(node),(Key)key);
         }
         else{
+            if(isNode3(tmp= getNextOrPrevOfNode(node))){
+                replacementKey=tmp.getKey();
+                replacementValue=tmp.getValue();
+                transformNode3IntoNode2ByKeyDeletion(getNode3Ref(node),replacementKey);
+
+            }
 
         }
         return null;
