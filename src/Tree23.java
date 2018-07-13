@@ -357,6 +357,8 @@ public class Tree23<Key extends Comparable<Key>,Value> implements Map<Key,Value>
 
     /***
      * makes all the needed transformations to ensure that the node given is consistent
+     * Why we dont check for link consistency ? because there is no way to violate the link consistency , the layers of code responsible
+     * for all tranformations from 2 node to 3 and to 4 and vice versa handle this!
      * @param node2
      */
     private Tree23.Node2 makeNode2Consistent(Node2 node2) {
@@ -739,10 +741,6 @@ public class Tree23<Key extends Comparable<Key>,Value> implements Map<Key,Value>
                 makeNode3Consistent(node3ref0):
                 null;
     }
-    public void delete(Key k) {
-        throw new InvalidParameterException();
-
-    }
     public Value search(Key k) {
         clearCache();
         Node2 node2=_search(root,k);
@@ -863,8 +861,55 @@ public class Tree23<Key extends Comparable<Key>,Value> implements Map<Key,Value>
         }
     }
 
+    /***
+     * Deletes the key given and transforms an given node into a Node2 node
+     * @Note It is important to call this method on a Childless node! because the Mid Link will be ignored and the subtree there will be freed
+     * otherwise
+     * @param node the node to delete the key given..
+     * @param k the key to delete from the node given
+     * @return the equilevant of node given , but transformed into node2
+     */
+    protected Tree23.Node2 transformNode3IntoNode2ByKeyDeletion(Tree23.Node3 node , Key k){
+        if(node.getKey().compareTo((Comparable)k)==0){
+            node.setKey(null);
+            node.swapKeysAndValues();
+        }
+        else if(node.getKey2().compareTo(k)==0){
+            node.setKey2(null);
+        }
+        return makeNode2Consistent(transformIntoNode2(node));
+
+    }
+
+
+    private Tree23.Node2 transformIntoNode2(Node3 node) {
+        node.setMid(null);
+        node.setKey2(null);
+        node.setValue2(null);
+        node.setNodeType(2);
+        return node;
+    }
+
+    private Tree23.Node2 getMin(Tree23.Node2 prev){
+        if(prev.getLeft()==null)return prev;
+        return getMin(prev.getLeft());
+
+    }
+
+    @SuppressWarnings("unckeched")
     @Override
     public Value remove(Object key) {
+
+        Value retval=search((Key)key);
+
+        Node2 node = getPathElement(0);
+
+        if(isChildlessNode(node)){
+            if(isNode3(node)) transformNode3IntoNode2ByKeyDeletion(getNode3Ref(node),(Key)key);
+        }
+        else{
+
+        }
         return null;
     }
     @SuppressWarnings("unckecked")
