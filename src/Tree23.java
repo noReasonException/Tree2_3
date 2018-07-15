@@ -1,3 +1,4 @@
+import java.lang.reflect.Array;
 import java.security.InvalidParameterException;
 import java.util.*;
 
@@ -413,7 +414,15 @@ public class Tree23<Key extends Comparable<Key>,Value> implements Map<Key,Value>
 
         return makeNode3LinksConsistent(node3);
     }
+    protected ArrayList<Tree23.Node2> getChildsOfNode2(Tree23.Node2 node2){
+        ArrayList<Tree23.Node2> retval=new ArrayList<>();
+        Node2 tmp=null;
+        if((tmp=node2.getLeft())!=null){ retval.add(tmp);}
+        if((tmp=node2.getRight())!=null){ retval.add(tmp);}
+        return retval;
 
+    }
+    //TODO : make use of getChildsOfNode2
     protected ArrayList<Tree23.Node2> getChildsOfNode3(Tree23.Node3 node3){
         ArrayList<Tree23.Node2> retval=new ArrayList<>(3);
         Node2 tmp;
@@ -455,6 +464,7 @@ public class Tree23<Key extends Comparable<Key>,Value> implements Map<Key,Value>
      * get all children of node 4 given
      * @param node4
      * @return a ArrayList<Tree23.Node2> object
+     * //TODO make use of getChildsOfNode3
      */
     protected ArrayList<Tree23.Node2> getChildsOfNode4(Tree23.Node4 node4){
         ArrayList<Tree23.Node2> childs=new ArrayList<>(4);
@@ -871,7 +881,7 @@ public class Tree23<Key extends Comparable<Key>,Value> implements Map<Key,Value>
             node.setKey2(null);
             node.setValue2(null);
         }
-        return makeNode2Consistent(transformIntoNode2(node));
+        return transformIntoNode2(node);
 
     }
 
@@ -898,26 +908,68 @@ public class Tree23<Key extends Comparable<Key>,Value> implements Map<Key,Value>
         else if(curr.getLeft()!=null)return getMin(curr.getLeft());
         throw new InvalidParameterException("Impossible state , only mid link in node with key="+curr.getKey());
     }
+
+    
+    /***
+     * this method returns the first sibling of type node3
+     * @Note warning! this method uses _search , so cachedPath may be inconsistent after call
+     * @param node2 the node to find siblings
+     * @return a node3 or nothing
+     */
+    private  Tree23.Node3 hasNode3Siblings(Node2 node2){
+
+        ArrayList<Tree23.Node2> tmp;
+        Node2 parent,child;
+        Node3 retval;
+        child=_search(root,node2.getKey()); //we search in order to get the path!
+        if(isNode2(parent=cachedPath.get(1))) tmp=getChildsOfNode2(parent);
+        else if(isNode3(parent))tmp=getChildsOfNode3(getNode3Ref(parent));
+        else throw new InvalidParameterException("Inconsistent state ! node is either node3 neither node2!#BUG");
+        for (Tree23.Node2 siblings:tmp){
+            if((retval=getNode3Ref(siblings))!=null&&retval!=child)return retval;
+        }
+        return null;
+    }
     @SuppressWarnings("unckeched")
     @Override
     public Value remove(Object key) {
 
         Value retval=search((Key)key);
-
         Node2 node = getPathElement(0);
-        Node2 tmp=null;
+        Node2 tmp,tmp2,tmp3=null;
         Key replacementKey=null;
         Value replacementValue=null;
+        /***
+         * Simplest case , in case the search ends in Node3 , we just delete the key-value pair :)
+         */
         if(isChildlessNode(node)){
-            if(isNode3(node)) transformNode3IntoNode2ByKeyDeletion(getNode3Ref(node),(Key)key);
+            if(isNode3(node)) makeNode2Consistent(transformNode3IntoNode2ByKeyDeletion(getNode3Ref(node),(Key)key));
+            else throw new InvalidParameterException("childless node of type Node2 is not implemented!");
         }
-        else{
-            if(isNode3(tmp= getNextOrPrevOfNode(node))){
-                replacementKey=tmp.getKey();
-                replacementValue=tmp.getValue();
-                transformNode3IntoNode2ByKeyDeletion(getNode3Ref(node),replacementKey);
+        /***
+         * The hard stuff...
+         * when is not childless node
+         */
+        else {
+            //ιf it is not a childless node , and the next/prev node is node3... then we take an replacement key from there!
+            if (isNode3(node)) makeNode2Consistent(transformNode3IntoNode2ByKeyDeletion(getNode3Ref(node), (Key) key));
+            else if (isNode2(node)) { //if is node 2
+                tmp = getNextOrPrevOfNode(node);
+                replacementKey = tmp.getKey();
+                replacementValue = tmp.getValue();
+                node.setKey(replacementKey);
+                node.setValue(replacementValue);
+                //if the successor is of type node3..
+                if (isNode3(tmp)) transformNode3IntoNode2ByKeyDeletion(getNode3Ref(tmp), replacementKey);
+                else if(isNode2(tmp)){
+                    Tree
+
+
+                }
+                else throw new InvalidParameterException("Inconsistent state ! node is either node3 neither node2!#BUG");
 
             }
+
 
         }
         return null;
