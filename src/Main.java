@@ -7,13 +7,10 @@ public class Main {
 
     public static void main(String[] args) {
         Map<Integer,String> h=new Tree23<>();
-        for (int i = 1; i <14; i++) {
+        for (int i = 1; i <20; i++) {
             h.put(i,"je");
         }
-        for (int i = 1; i < 14; i++) {
-            System.out.println(h.get(i));
-        }
-        h.remove(10);
+        h.remove(4);
         ((Tree23)h).print();
 
     }

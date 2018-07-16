@@ -913,12 +913,24 @@ public class Tree23<Key extends Comparable<Key>,Value> implements Map<Key,Value>
     }
 
     private ArrayList<Tree23.Node2> getSiblingsOfNode(Node2 node){
-        ArrayList<Tree23.Node2> tmp;
-        Node2 parent,child;
+        ArrayList<Tree23.Node2> tmp=new ArrayList<>();
+        Node2 parent=null,child=null,siblingparent=null;
         child=_search(root,node.getKey()); //we search in order to get the path!
-        if(isNode2(parent=cachedPath.get(1))) tmp=getChildsOfNode2(parent);
-        else if(isNode3(parent))tmp=getChildsOfNode3(getNode3Ref(parent));
-        else throw new InvalidParameterException("Inconsistent state ! node is either node3 neither node2!#BUG");
+        if(cachedPath.isEmpty())return null;
+        else if(cachedPath.size()>0){
+            if(isNode2(parent=cachedPath.get(1))) tmp.addAll(getChildsOfNode2(parent));
+            else if(isNode3(parent))tmp.addAll(getChildsOfNode3(getNode3Ref(parent)));
+            else throw new InvalidParameterException("Inconsistent state ! node is either node3 neither node2!#BUG");
+
+        }if(cachedPath.size()>1){
+            if((siblingparent=cachedPath.get(2).getLeft())!=null&&siblingparent!=parent)parent=siblingparent;
+            else if(parent.getRight()!=null)parent=parent.getRight();
+            if(isNode2(parent)) tmp.addAll(getChildsOfNode2(parent));
+            else if(isNode3(parent))tmp.addAll(getChildsOfNode3(getNode3Ref(parent)));
+            else throw new InvalidParameterException("Inconsistent state ! node is either node3 neither node2!#BUG");
+
+        }
+        tmp.remove(node); //i am not sibling of myself.
         return tmp;
     }
     /***
@@ -974,23 +986,21 @@ public class Tree23<Key extends Comparable<Key>,Value> implements Map<Key,Value>
             if (isNode3(node)) makeNode2Consistent(transformNode3IntoNode2ByKeyDeletion(getNode3Ref(node), (Key) key));
             else if (isNode2(node)) { //if is node 2
                 current = getNextOrPrevOfNode(node);
-                replacementKey = current.getKey();
-                replacementValue = current.getValue();
-                node.setKey(replacementKey);
-                node.setValue(replacementValue);
                 //if the successor is of type node3..
                 if (isNode3(current)) transformNode3IntoNode2ByKeyDeletion(getNode3Ref(current), replacementKey);
                 else if(isNode2(current)){
                     ArrayList<Tree23.Node2> siblings = getSiblingsOfNode(current);
-                    if(siblings.size()==1){
+                    System.out.println(Arrays.toString(siblings.toArray()));
+                    System.out.println("curr"+current.getRight());
+                    /*if(siblings.size()==1){
                         //parent is node2 (case 1)
                         if(deleteChild(parent=cachedPath.get(1),node3child=siblings.get(0))&&
                                 deleteChild(parent,current)&&
-                                deleteChild(cachedPath.get(2),parent)){
-                            addChild(parent,getChildsOfNode2(current).get(0));
+                                deleteChild(cachedPath.get(2),parent)) {
+                            addChild(parent, getChildsOfNode2(current).get(0));
                             makeNode2Consistent(parent);
-                            addChild(cachedPath.get(2),migrateNode2IntoNode3Parent(parent,getNode3Ref(node3child)));
-                            //make parent node consistent
+                            addChild(cachedPath.get(2), migrateNode2IntoNode3Parent(parent, getNode3Ref(node3child)));
+                            //make parent node consistent]
                         }
                         else{
                             throw new InvalidParameterException("Inconsistent state ! node is either node3 neither node2!#BUG");
@@ -998,7 +1008,11 @@ public class Tree23<Key extends Comparable<Key>,Value> implements Map<Key,Value>
                     }
                     else{
                         //parent  is node3
-                    }
+                    }*/
+                    replacementKey = current.getKey();
+                    replacementValue = current.getValue();
+                    node.setKey(replacementKey);
+                    node.setValue(replacementValue);
 
 
                 }
