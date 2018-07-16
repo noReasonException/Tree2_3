@@ -643,7 +643,7 @@ public class Tree23<Key extends Comparable<Key>,Value> implements Map<Key,Value>
                         if(trace)System.out.println("migrate on node2");
                         deleteChild(cachedPath.get(i+1),cachedPath.get(i));
                         if(migrateNode4IntoNode2Parent(getNode4Ref(cachedPath.get(i)),cachedPath.get(i+1))==null){
-                            System.out.println("null");//critical bug , remains unbalanced
+                            System.out.println("null");
                         }
                         break;
                     }
@@ -917,18 +917,10 @@ public class Tree23<Key extends Comparable<Key>,Value> implements Map<Key,Value>
         Node2 parent=null,child=null,siblingparent=null;
         child=_search(root,node.getKey()); //we search in order to get the path!
         if(cachedPath.isEmpty())return null;
-        else if(cachedPath.size()>0){
-            if(isNode2(parent=cachedPath.get(1))) tmp.addAll(getChildsOfNode2(parent));
-            else if(isNode3(parent))tmp.addAll(getChildsOfNode3(getNode3Ref(parent)));
+        else if(cachedPath.size()>0) {
+            if (isNode2(parent = cachedPath.get(1))) tmp.addAll(getChildsOfNode2(parent));
+            else if (isNode3(parent)) tmp.addAll(getChildsOfNode3(getNode3Ref(parent)));
             else throw new InvalidParameterException("Inconsistent state ! node is either node3 neither node2!#BUG");
-
-        }if(cachedPath.size()>1){
-            if((siblingparent=cachedPath.get(2).getLeft())!=null&&siblingparent!=parent)parent=siblingparent;
-            else if(parent.getRight()!=null)parent=parent.getRight();
-            if(isNode2(parent)) tmp.addAll(getChildsOfNode2(parent));
-            else if(isNode3(parent))tmp.addAll(getChildsOfNode3(getNode3Ref(parent)));
-            else throw new InvalidParameterException("Inconsistent state ! node is either node3 neither node2!#BUG");
-
         }
         tmp.remove(node); //i am not sibling of myself.
         return tmp;
@@ -968,6 +960,8 @@ public class Tree23<Key extends Comparable<Key>,Value> implements Map<Key,Value>
         Value retval=search((Key)key);
         Node2 node = getPathElement(0);
         Node2 current,parent,node3child=null;
+        Node4 nodeToBeTransformed=null;
+        Node2 transformedNode=null;
         Key replacementKey=null;
         Value replacementValue=null;
         /***
@@ -986,15 +980,47 @@ public class Tree23<Key extends Comparable<Key>,Value> implements Map<Key,Value>
             if (isNode3(node)) makeNode2Consistent(transformNode3IntoNode2ByKeyDeletion(getNode3Ref(node), (Key) key));
             else if (isNode2(node)) { //if is node 2
                 current = getNextOrPrevOfNode(node);
+
                 //if the successor is of type node3..
                 if (isNode3(current)) transformNode3IntoNode2ByKeyDeletion(getNode3Ref(current), replacementKey);
                 else if(isNode2(current)){
+
+                    replacementKey = current.getKey();
+                    replacementValue = current.getValue();
                     ArrayList<Tree23.Node2> siblings = getSiblingsOfNode(current);
                     System.out.println(Arrays.toString(siblings.toArray()));
                     System.out.println("curr"+current.getRight());
-                    /*if(siblings.size()==1){
+                    if(siblings.size()==1&&isNode3(node3child=siblings.get(0))) {
+                        System.out.println("he");
+                        //parent is node 2 and it has a sibling of node3 , case#1!
+                        if(deleteChild(parent=cachedPath.get(1),node3child)&& //dismiss the link from father to node3 sibling
+                                deleteChild(parent,current)) {                 //dismiss the child from the father
+                            if (cachedPath.size() > 1) {
+                                if (!deleteChild(cachedPath.get(2), parent)) { //delete from grandfather , in order for the tranformation to be done
+                                    throw new InvalidParameterException("Inconsistent state!#BUG");
+                                }
+                                try{
+                                    addChild(parent, getChildsOfNode2(current).get(0));
+
+                                }catch (IndexOutOfBoundsException e){
+                                    //no problem , just they dont have any kids^^
+                                }
+                                makeNode2Consistent(parent);
+                                nodeToBeTransformed=migrateNode2IntoNode3Parent(parent,getNode3Ref(node3child));
+                                transformedNode=makeNode2Consistent(transformNode4IntoNode2Subtree(nodeToBeTransformed));
+                                addChild(cachedPath.get(2),transformedNode);
+
+                            } else {
+                                root = parent; //root case
+                            }
+                        }else{
+                            throw new InvalidParameterException("Inconsistent state!#BUG");
+
+                        }
+
+                    }
                         //parent is node2 (case 1)
-                        if(deleteChild(parent=cachedPath.get(1),node3child=siblings.get(0))&&
+                    /*    if(deleteChild(parent=cachedPath.get(1),node3child=siblings.get(0))&&
                                 deleteChild(parent,current)&&
                                 deleteChild(cachedPath.get(2),parent)) {
                             addChild(parent, getChildsOfNode2(current).get(0));
@@ -1107,7 +1133,20 @@ public class Tree23<Key extends Comparable<Key>,Value> implements Map<Key,Value>
     public Value merge(Key key, Value value, BiFunction<? super Value, ? super Value, ? extends Value> remappingFunction) {
         return null;
     }
+    public static Tree23<Integer,String>  testcase(){
+        Tree23<Integer,String> retval=new Tree23<>();
+        retval.root=retval.getInstance2(9,"hoa");
+        retval.root.setLeft(retval.getInstance3(4,"ha",7,"hjas"));
+        retval.root.getLeft().setLeft(retval.getInstance2(1,"he"));
+        retval.root.getLeft().setRight(retval.getInstance2(8,"ha"));
+        ((Tree23.Node3)retval.root.getLeft()).setMid(retval.getInstance2(5,"hs"));
+        retval.root.setRight(retval.getInstance2(13,"has"));
 
+        retval.root.getRight().setRight(retval.getInstance2(14,"has"));
+        retval.root.getRight().setLeft(retval.getInstance3(10,"has",11,"A"));
+
+        return retval;
+    }
     public Tree23() {
         this.root = null;
         this.cachedParent=null;
